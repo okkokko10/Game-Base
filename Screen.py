@@ -30,6 +30,8 @@ class Canvas:
         pygame.draw.line(self.surface,color,iV(posA),iV(posB),int(width))
     def Fill(self,color):
         self.surface.fill(color)
+    def Blit(self,source,dest):
+        self.surface.blit(source,iV(dest))
 
 class ScaledCanvas:
     def __init__(self,size,center,zoom):
@@ -62,7 +64,8 @@ class ScaledCanvas:
         return self.center
     def GetZoom(self):
         return self.zoom
-
+    def Blit(self,source,dest,size):
+        self.canvas.Blit(pygame.transform.scale(source,iV(size*self.zoom)),self.TransformPos(dest))
 class GameObject:
     active:bool
     def __init__(self,*args):
@@ -77,8 +80,11 @@ class GameObject:
         pass
 
 class Scene:
-    def __init__(self):
-        self.canvas=ScaledCanvas(V(800,800),V(0,0),100)
+    def __init__(self,canvas=None):
+        if canvas:
+            self.canvas=canvas
+        else:
+            self.canvas=ScaledCanvas(V(800,800),V(0,0),100)
         self.objects=set()
         self.deltaTime=0
         self.globalMethods=set()
