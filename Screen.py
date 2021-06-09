@@ -89,10 +89,7 @@ class Scene:
         self.deltaTime=0
         self.globalMethods=set()
         self.events=[]
-        self.keysDown=set()
-        self.mousePosScreen=V(0,0)
-        self.mousePos=V(0,0)
-        self.mouseButtonsDown=set()
+        self.inputs=Inputs()
         pass
     def AddObject(self,gameObject):
         gameObject.active=True
@@ -111,16 +108,82 @@ class Scene:
 
         return self.canvas.GetSurface()
     def UpdateInputs(self):
-        for e in self.events:
+        self.inputs.Update(self)
+        pass
+class Inputs:
+    def __init__(self):
+        self.keysDown={}
+        self.mousePosScreen=V(0,0)
+        self.mousePos=V(0,0)
+        self.mouseButtonsDown={}
+    def Update(self,scene):
+        self._UpdateKeys()
+        self._UpdateMouse()
+        for e in scene.events:
             if e.type == pygame.KEYDOWN:
-                self.keysDown.add(e.__dict__['key'])
+                self._KeyDown(e.__dict__['key'])
             elif e.type == pygame.KEYUP:
-                self.keysDown.discard(e.__dict__['key'])
+                self._KeyUp(e.__dict__['key'])
             elif e.type in (pygame.MOUSEMOTION,pygame.MOUSEBUTTONUP,pygame.MOUSEBUTTONDOWN):
                 x,y=e.__dict__['pos']
                 self.mousePosScreen=V(x,y)
-                self.mousePos=self.canvas.InverseTransformPos(self.mousePosScreen)
+                self.mousePos=scene.canvas.InverseTransformPos(self.mousePosScreen)
                 if e.type == pygame.MOUSEBUTTONDOWN:
-                    self.mouseButtonsDown.add(e.__dict__['button'])
+                    self._MouseDown(e.__dict__['button'])
                 elif e.type == pygame.MOUSEBUTTONUP:
-                    self.mouseButtonsDown.discard(e.__dict__['button'])
+                    self._MouseUp(e.__dict__['button'])
+    def IsKeyPressed(self,key):
+        if key in self.keysDown:
+            if self.keysDown[key]!=3:
+                return True
+        return False
+    def IsKeyDown(self,key):
+        if key in self.keysDown:
+            if self.keysDown[key]==1:
+                return True
+        return False
+    def IsKeyUp(self,key):
+        if key in self.keysDown:
+            if self.keysDown[key]==3:
+                return True
+        return False
+    def _KeyUp(self,key):
+        self.keysDown[key]=3
+    def _KeyDown(self,key):
+        self.keysDown[key]=1
+    def _UpdateKeys(self):
+        for k in self.keysDown:
+            if self.keysDown[k]==1:
+                self.keysDown[k]=2
+            elif self.keysDown[k]==3:
+                del self.keysDown[k]
+    def IsMousePressed(self,key):
+        if key in self.mouseButtonsDown:
+            if self.mouseButtonsDown[key]!=3:
+                return True
+        return False
+    def IsMouseDown(self,key):
+        if key in self.mouseButtonsDown:
+            if self.mouseButtonsDown[key]==1:
+                return True
+        return False
+    def IsMouseUp(self,key):
+        if key in self.mouseButtonsDown:
+            if self.mouseButtonsDown[key]==3:
+                return True
+        return False
+    def _MouseUp(self,key):
+        self.mouseButtonsDown[key]=3
+    def _MouseDown(self,key):
+        self.mouseButtonsDown[key]=1
+    def _UpdateMouse(self):
+        for k in self.mouseButtonsDown:
+            if self.mouseButtonsDown[k]==1:
+                self.mouseButtonsDown[k]=2
+            elif self.mouseButtonsDown[k]==3:
+                del self.mouseButtonsDown[k]
+    def GetMousePos(self):
+        return self.mousePos
+    def GetTrueMousePos(self):
+        return self.mousePosScreen
+

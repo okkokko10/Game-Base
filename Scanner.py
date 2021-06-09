@@ -96,11 +96,11 @@ class Turtle(GameObject):
         for h in self.hits:
             canvas.DrawCircle(h,self.color,1/16)
     def Update(self, scene:Scene):
-        if pygame.K_d in scene.keysDown:
+        if scene.inputs.IsKeyPressed(pygame.K_d):
             self.pos+=(scene.mousePos-self.pos).normalize()*scene.deltaTime/1000
-        if pygame.K_a in scene.keysDown:
+        if scene.inputs.IsKeyPressed(pygame.K_a):
             self.direction+=(scene.mousePos-self.pos-self.direction)*scene.deltaTime/500
-        if pygame.K_s in scene.keysDown:
+        if scene.inputs.IsKeyPressed(pygame.K_s):
             possibleHits=[]
             for o in scene.objects:
                 if isinstance(o,Obstacle):
@@ -117,7 +117,7 @@ class Turtle(GameObject):
                         if (m.x<h.x) == (self.direction.x<0):
                             m=h
                 self.hits.append(m)
-        if pygame.K_w in scene.keysDown:
+        if scene.inputs.IsKeyPressed(pygame.K_w):
             self.hits.clear()
 
 a=Scene()
