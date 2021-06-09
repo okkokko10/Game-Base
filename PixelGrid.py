@@ -24,7 +24,8 @@ class PixelGrid(GameObject):
         self.surface.lock()
         for x in range(self.size[0]):
             for y in range(self.size[1]):
-                self.surface.set_at((x,y),(0,0,100*self.getPoint((x,y))))
+                a=self.getPoint((x,y))
+                self.surface.set_at((x,y),(0,100*a,200*a))
         self.surface.unlock()
         
     def getPoint(self,pos):
@@ -53,7 +54,7 @@ class Conway(PixelGrid):
             u=True
             for x in range(self.size[0]):
                 for y in range(self.size[1]):
-                    if True:
+                    if False:
                         s=0
                         for p in (1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1):
                             ax,ay=self.WarpInside((x+p[0],y+p[1]))
@@ -65,14 +66,15 @@ class Conway(PixelGrid):
                             self.setPoint((x,y),False)
                     else:
                         s=0
-                        for p in (1,1),(-1,2),(0,1),(0,-1):
+                        for p in (1,1),(-1,1):
                             ax,ay=self.WarpInside((x+p[0],y+p[1]))
                             if oldGrid[ax,ay]==True:
                                 s+=1
                         if s==1:
                             self.setPoint((x,y),True)
                         elif s==0:
-                            self.setPoint((x,y),False)
+                            pass
+                            #self.setPoint((x,y),False)
         if scene.inputs.IsMousePressed(1):
             u=True
             pos=self.TransformPos(scene.inputs.GetMousePos())
@@ -87,8 +89,9 @@ class Conway(PixelGrid):
             self.UpdateSurface()
         pass
 
-a=Scene()
-b=Display(V(800,800))
-a.AddObject(Conway((64,64),V(8,8),V(-4,-4)))
+if __name__=='__main__':
+    a=Scene()
+    b=Display(V(800,800))
+    a.AddObject(Conway((64,64),V(4,4),V(-3,-3)))
 
-b.Loop(a.ScreenUpdate)
+    b.Loop(a.ScreenUpdate)
