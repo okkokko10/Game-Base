@@ -1,15 +1,34 @@
 from Screen import *
-
-
+import math
+def sign(x):
+    return math.copysign(1,x)
 class Shape:
     def Intersect(self,other):
         pass
     pass
 
-class Rect:
+'''
+TODO:
+Circle
+basic rectangle
+line
+ray
+line segment
+combining shapes with |
+rotation
+world-local coordinate, scale and rotation transformation, like in Unity
+arbitrary polygons
+
+
+
+'''
+
+
+class Rect(Shape):
     def __init__(self,x1,y1,x2,y2):
         self.x1,self.x2=sorted(x1,x2)
         self.y1,self.y2=sorted(y1,y2)
+        self.edges=self.x1,self.y1,self.x2,self.y2
         self.corner1=V(self.x1,self.y1)
         self.corner2=V(self.x2,self.y2)
         pass
@@ -23,13 +42,18 @@ class Rect:
             return None
     def __and__(self,other):
         return self.IntersectRect(other,True)
+    @staticmethod
+    def FromVectorPair(a,b):
+        return Rect(a.x,a.y,b.x,b.y)
         
 
-
-class Ray(Shape):
-    def __init__(self,origin,direction):
+class Line(Shape):
+    def __init__(self,origin,vector):
         self.origin=origin
-        self.vector=direction
+        self.vector=vector
+    @staticmethod
+    def FromPointPair(a,b):
+        return Line(a,b-a)        
     def IntersectNormal(self,center):
         return self.IntersectNormalRelative(center - self.origin)+self.origin
     def IntersectNormalRelative(self,difference):
@@ -42,7 +66,7 @@ class Ray(Shape):
         x = mul *(vy*difference.y+vx*difference.x)
         y= x*vy/vx
         return x,y
-    def IntersectCircleRelative(self,difference,radius,behind=False):
+    def IntersectCircleRelative(self,difference,radius,behind=True):
         #y=\frac{v.y}{v.x}x
             #\frac{x=c.x+c.y\frac{v.y}{v.x}\pm \sqrt{\left(c.x+c.y\frac{v.y}{v.x}\right)^2-\left(\left(\frac{v.y}{v.x}\right)^2+1\right)\cdot \left(-R^2+c.y^2+c.x^2\right)}}{\left(\frac{v.y}{v.x}\right)^2+1}
         vx,vy=self.vector
@@ -88,17 +112,43 @@ class Ray(Shape):
                 return reversed(out)
         else:
             return None
-    def IntersectCircle(self,center,radius,behind=False):
-        out = self.IntersectCircleRelative(center-self.origin,radius,behind)
+    def IntersectCircle(self,circle,behind=False):
+        out = self.IntersectCircleRelative(circle.center-self.origin,circle.radius,behind)
         if out:
             return map(lambda x: x+self.origin,out)
         else:
             return None
+    def IntersectRect(self,rect:Rect):
+        x1,y1,x2,y2 = map(lambda x: x-self.origin,rect.edges)
+        l=[]
+        vx,vy=self.vector
+        if x1*abs(vy)<y1*vx*sign(vy)<=x2*abs(vy):
+            l.append(y1*V(vx/vy,1))
+            pass
+        if x1*abs(vy)<=y2*vx*sign(vy)<x2*abs(vy):
+            l.append(y2*V(vx/vy,1))
+            pass
+        if y1*abs(vx)<=x1*vy*sign(vx)<y2*abs(vx):
+            l.append(x1*V(1,vy/vx))
+        if y1*abs(vx)<x2*vy*sign(vx)<=y2*abs(vx):
+            l.append(x2*V(1,vy/vx))
+
+        if len(l)==2:
+            return LineSegment(l[0]+self.origin,l[1]+self.origin)
+        else:
+            return None
+class Ray(Line):
+    def __init__(self,origin,vector):
+        super().__init__(origin,vector)
+class LineSegment(Line):
+    def __init__(self, pointA, pointB):
+        super().__init__(pointA, pointB-pointA)
+        self.rect=Rect.FromVectorPair(pointA,pointB)
 
 class Circle(Shape):
     def __init__(self,center,radius):
         self.center=center
         self.radius=radius
-    def IntersectRay(self,ray:Ray):
-        ray.IntersectCircle(self.center,self.radius,True)
+    def IntersectLine(self,line):
+        line.IntersectCircle(self.center,self.radius,True)
     pass

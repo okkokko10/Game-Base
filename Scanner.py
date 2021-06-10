@@ -6,13 +6,14 @@ class Obstacle(GameObject):
     def __init__(self,pos,radius):
         self.pos=pos
         self.radius=radius
+        self.shape=Circle(pos,radius)
         self.color=(100,0,50)
     def Draw(self,canvas:ScaledCanvas):
         canvas.DrawCircle(self.pos,self.color,self.radius)
     def Update(self,scene:Scene):
         pass
     def IntersectRay(self,ray):
-        return ray.IntersectCircle(self.pos,self.radius)
+        return ray.IntersectCircle(self.shape)
 
 class Turtle(GameObject):
     def __init__(self,pos,direction):
@@ -35,7 +36,7 @@ class Turtle(GameObject):
             possibleHits=[]
             for o in scene.objects:
                 if isinstance(o,Obstacle):
-                    hit=o.IntersectRay(Ray(self.pos,self.direction))
+                    hit=o.IntersectRay(Line(self.pos,self.direction))
                     if hit:
                         possibleHits.extend(hit)
             if possibleHits:
