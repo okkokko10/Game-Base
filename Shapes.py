@@ -20,7 +20,8 @@ rotation
 world-local coordinate, scale and rotation transformation, like in Unity
 arbitrary polygons
 
-
+change all position vectors to transforms
+fold line's direction vector and circle's radius into their transform's rotation
 
 '''
 
@@ -146,20 +147,65 @@ class LineSegment(Line):
         self.rect=Rect.FromVectorPair(pointA,pointB)
 
 class Circle(Shape):
-    def __init__(self,center,radius):
-        self.center=center
+    def __init__(self,transform,radius):
+        self.center=transform
         self.radius=radius
     def IntersectLine(self,line):
         line.IntersectCircle(self.center,self.radius,True)
+    def IsInside(self,transform):
+        return self.radius <= self.center.distance(transform)
     pass
 
 class Transform:
-    def __init__(self,pos,rot,parent=None):
+    def __init__(self,pos:cv,rot:cv,parent=None):
         self.parent=parent
         self.pos=pos
         self.rot=rot
-    def toRot(self,pos,rot):
-        return
+    def detachOnce(self):
+        return Transform(self.parent.pos+self.pos*self.parent.rot,self.rot*self.parent.rot,self.parent.parent)
+    def detach(self,until=None): #probably needs optimization idk
+        c = self
+        while c.parent!=until:
+            #assert c.parent!=None
+            c = c.detachOnce()
+        return c
+    def Become(self,other):
+        self.__dict__=other.__dict__
+    def copy(self):
+        return Transform(self.pos,self.rot,self.parent)
+    def distance(self,other,ancestor=None):
+        return abs(other.attach(self).pos)
+    def attach(self,other,ancestor=None):
+        'changes parent to other without changing the world coordinates'
+        unattached=self.detach(ancestor)
+        parent=other.detach(ancestor)
+        # unattached.pos = parent.pos+self.pos*parent.rot
+        # unattached.rot = self.rot*parent.rot
+        # unattached.parent = parent.parent
+        return Transform(
+        (unattached.pos - parent.pos)/parent.rot,
+        unattached.rot/parent.rot,
+        other)
+    def commonAncestor(self,other,until=None):
+        sFT=self.familyTree(until)
+        oFT=other.familyTree(until)
+        for i in len(sFT):
+            if sFT[i] in oFT:
+                #oFT.index(sFT[i])
+                return sFT[i]
+    def familyTree(self,until=None):
+        l=[self.parent]
+        while l[-1]!=until:
+            #assert c.parent!=None
+            l.append(l[-1].parent)
+        return l
+
+
 class Combination:
     def __init__(self):
         pass
+    def IsInside(self,transform) -> bool:
+        return 
+class C_union(Combination):
+    def __init__(self,shapes):
+        self.shapes=shapes
