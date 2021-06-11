@@ -1,10 +1,16 @@
 import pygame
 
+from ComplexVector import CompVec as cv
+
 def V(x,y):
-    return pygame.Vector2(x,y)
+    "shorthand for ComplexVector.CompVec(x,y)"
+    return cv(x,y)
 def Vi(v):
-    return pygame.Vector2(v)
+    'shorthand for ComplexVector.CompVec(v[0],v[1])'
+    return cv(v[0],v[1])
 def iV(v):
+    '''can be used to turn a vector into a grid coordinate \n
+    shorthand for int(v[0]),int(v[1])'''
     return int(v[0]),int(v[1])
     
 
@@ -12,7 +18,7 @@ class Display:
     def __init__(self,size):
         self.canvas = pygame.display.set_mode(iV(size))
     def Update(self,surface):
-        self.canvas.blit(surface,V(0,0))
+        self.canvas.blit(surface,(0,0))
         pygame.display.update()
     def Loop(self,function,speed=50):
         """function(events,deltaTime) -> surface"""
@@ -26,7 +32,7 @@ class Display:
         
 class Canvas:
     def __init__(self,size):
-        self.surface=pygame.Surface(size)
+        self.surface=pygame.Surface(iV(size))
     def DrawCircle(self,pos,color,radius):
         pygame.draw.circle(self.surface,color,iV(pos),int(radius))
     def DrawLine(self,posA,posB,color,width):

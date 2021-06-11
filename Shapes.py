@@ -14,7 +14,8 @@ basic rectangle
 line
 ray
 line segment
-combining shapes with |
+combining shapes with | and &
+finding intersections with &
 rotation
 world-local coordinate, scale and rotation transformation, like in Unity
 arbitrary polygons
@@ -22,7 +23,6 @@ arbitrary polygons
 
 
 '''
-
 
 class Rect(Shape):
     def __init__(self,x1,y1,x2,y2):
@@ -152,3 +152,14 @@ class Circle(Shape):
     def IntersectLine(self,line):
         line.IntersectCircle(self.center,self.radius,True)
     pass
+
+class Transform:
+    def __init__(self,pos,rot,parent=None):
+        self.parent=parent
+        self.pos=pos
+        self.rot=rot
+    def toRot(self,pos,rot):
+        return
+class Combination:
+    def __init__(self):
+        pass
