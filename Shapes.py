@@ -21,7 +21,7 @@ world-local coordinate, scale and rotation transformation, like in Unity
 arbitrary polygons
 
 change all position vectors to transforms
-fold line's direction vector and circle's radius into their transform's rotation
+--fold line's direction vector and circle's radius into their transform's rotation
 
 '''
 
@@ -48,77 +48,15 @@ class Rect(Shape):
         return Rect(a.x,a.y,b.x,b.y)
         
 
-class Line(Shape):
-    def __init__(self,origin,vector):
-        self.origin=origin
-        self.vector=vector
+class LineOld(Shape):
+    def __init__(self,transform):
+        self.transform=transform
+        self.origin
+        self.vector
     @staticmethod
     def FromPointPair(a,b):
-        return Line(a,b-a)        
-    def IntersectNormal(self,center):
-        return self.IntersectNormalRelative(center - self.origin)+self.origin
-    def IntersectNormalRelative(self,difference):
-        #x=\frac{v.x\cdot v.y}{v.y^2+v.x^2}\cdot \left(c.y-o.y\right)+c.x+\frac{v.y^2}{v.y^2+v.x^2}\cdot \left(o.x-c.x\right)
-            #y=\frac{v.y}{v.x}\left(x-o.x\right)+o.y
-            #x-o.x=\frac{v.x\cdot v.y}{v.y^2+v.x^2}\cdot d.y+\frac{v.x^2}{v.y^2+v.x^2}\cdot d.x
-            #y-o.y=\frac{v.y}{v.x}\left(x-o.x\right)
-        vx,vy=self.vector
-        mul = vx/(vy*vy+vx*vx)
-        x = mul *(vy*difference.y+vx*difference.x)
-        y= x*vy/vx
-        return x,y
-    def IntersectCircleRelative(self,difference,radius,behind=True):
-        #y=\frac{v.y}{v.x}x
-            #\frac{x=c.x+c.y\frac{v.y}{v.x}\pm \sqrt{\left(c.x+c.y\frac{v.y}{v.x}\right)^2-\left(\left(\frac{v.y}{v.x}\right)^2+1\right)\cdot \left(-R^2+c.y^2+c.x^2\right)}}{\left(\frac{v.y}{v.x}\right)^2+1}
-        vx,vy=self.vector
-        cx,cy=difference
-        if vx == 0:
-            D=radius**2-cx**2
-            if D>=0:
-                sqrtD=D**0.5
-                y1=cy+sqrtD
-                y2=cy-sqrtD
-                out=[]
-                if y1*vy>=0 or behind:
-                    out.append(V(0,y1))
-                if y2*vy>=0 or behind:
-                    out.append(V(0,y2))
-                if vy<0:
-                    return out
-                else:
-                    return reversed(out)
-            else:
-                return None
-                
-        k = vy/vx
-        a=k**2 +1
-        b=cx+cy*k
-        # c=cx**2+cy**2-radius**2
-        # D=b**2 -a*c
-        D=radius**2 *a -(cy-cx*k)**2
-        if D>=0:
-            sqrtD=D**0.5
-            x1 = (b + sqrtD)/a
-            x2 = (b - sqrtD)/a
-            y1 = k*x1
-            y2 = k*x2
-            out=[]
-            if x1*vx>=0 or behind:
-                out.append(V(x1,y1))
-            if x2*vx>=0 or behind:
-                out.append(V(x2,y2))
-            if vx>0:
-                return out
-            else:
-                return reversed(out)
-        else:
-            return None
-    def IntersectCircle(self,circle,behind=False):
-        out = self.IntersectCircleRelative(circle.center-self.origin,circle.radius,behind)
-        if out:
-            return map(lambda x: x+self.origin,out)
-        else:
-            return None
+        return Line(Transform(a,b-a,None))
+
     def IntersectRect(self,rect:Rect):
         x1,y1,x2,y2 = map(lambda x: x-self.origin,rect.edges)
         l=[]
@@ -138,22 +76,57 @@ class Line(Shape):
             return LineSegment(l[0]+self.origin,l[1]+self.origin)
         else:
             return None
+
+class Line(Shape):
+    def __init__(self,transform):
+        assert isinstance(transform,Transform)
+        self.transform=transform
+    def IntersectNormal(self,transform):
+        'basically just projects the input onto the line'
+        assert isinstance(transform,Transform)
+        tr=transform.attach(self.transform)
+        tr.pos=V(tr.pos.x,0)
+        return tr
+    def IntersectCircle(self,circle):
+        'returns the points at which the circle intersects the line. returns None if it doesn\'t'
+        assert isinstance(circle,Circle)
+        tr=circle.transform.attach(self.transform)
+        D=tr.rot.lengthSq()-tr.pos.y**2
+        if D>=0:
+            sqrtD=D**0.5
+            return self.ThatIntersect([Transform(V(tr.pos.x+sqrtD,0),V(1,0),self.transform),Transform(V(tr.pos.x-sqrtD,0),V(1,0),self.transform)])
+        else: return []
+    def ThatIntersect(self,l):
+        'overridden by the subclasses Ray and LineSegment'
+        return l
 class Ray(Line):
-    def __init__(self,origin,vector):
-        super().__init__(origin,vector)
+    def __init__(self,transform):
+        super().__init__(transform)
+    def ThatIntersect(self, l):
+        out = []
+        for i in l:
+            if 0<=i.pos.x:
+                out.append(i)
+        return out
 class LineSegment(Line):
-    def __init__(self, pointA, pointB):
-        super().__init__(pointA, pointB-pointA)
-        self.rect=Rect.FromVectorPair(pointA,pointB)
+    def __init__(self,transform):
+        super().__init__(transform)
+    def ThatIntersect(self, l):
+        out = []
+        for i in l:
+            if 0<=i.pos.x<=1:
+                out.append(i)
+        return out
 
 class Circle(Shape):
-    def __init__(self,transform,radius):
-        self.center=transform
-        self.radius=radius
-    def IntersectLine(self,line):
-        line.IntersectCircle(self.center,self.radius,True)
+    'a circle with its center at the origin and its radius 1, transformed by its transform'
+    def __init__(self,transform):
+        assert isinstance(transform,Transform)
+        self.transform=transform
+    # def IntersectLine(self,line):
+    #     line.IntersectCircle(self.transform,self.radius,True)
     def IsInside(self,transform):
-        return self.radius <= self.center.distance(transform)
+        return self.transform.distance(transform) <= 1
     pass
 
 class Transform:
@@ -166,7 +139,6 @@ class Transform:
     def detach(self,until=None): #probably needs optimization idk
         c = self
         while c.parent!=until:
-            #assert c.parent!=None
             c = c.detachOnce()
         return c
     def Become(self,other):
@@ -175,17 +147,17 @@ class Transform:
         return Transform(self.pos,self.rot,self.parent)
     def distance(self,other,ancestor=None):
         return abs(other.attach(self).pos)
-    def attach(self,other,ancestor=None):
-        'changes parent to other without changing the world coordinates'
+    def attach(self,newParent,ancestor=None):
+        'returns a new transform that has identical world coordinates but has newParent as parent'
         unattached=self.detach(ancestor)
-        parent=other.detach(ancestor)
+        parent=newParent.detach(ancestor)
         # unattached.pos = parent.pos+self.pos*parent.rot
         # unattached.rot = self.rot*parent.rot
         # unattached.parent = parent.parent
         return Transform(
         (unattached.pos - parent.pos)/parent.rot,
         unattached.rot/parent.rot,
-        other)
+        newParent)
     def commonAncestor(self,other,until=None):
         sFT=self.familyTree(until)
         oFT=other.familyTree(until)

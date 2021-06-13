@@ -33,6 +33,8 @@ class CompVec(complex):
             return self.x
         elif i==1:
             return self.y
+    def lengthSq(self):
+        return self.real**2+self.imag**2
 def outer(func):
     def inner(*args,**kvargs):
         return CompVec(func(*args,**kvargs))
