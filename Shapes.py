@@ -78,6 +78,7 @@ class LineOld(Shape):
             return None
 
 class Line(Shape):
+    'a line going along the x-axis, transformed by its transform'
     def __init__(self,transform):
         assert isinstance(transform,Transform)
         self.transform=transform
@@ -86,7 +87,7 @@ class Line(Shape):
         assert isinstance(transform,Transform)
         tr=transform.attach(self.transform)
         tr.pos=V(tr.pos.x,0)
-        return tr
+        return self.DoesIntersect([tr])
     def IntersectCircle(self,circle):
         'returns the points at which the circle intersects the line. returns None if it doesn\'t'
         assert isinstance(circle,Circle)
@@ -94,24 +95,26 @@ class Line(Shape):
         D=tr.rot.lengthSq()-tr.pos.y**2
         if D>=0:
             sqrtD=D**0.5
-            return self.ThatIntersect([Transform(V(tr.pos.x+sqrtD,0),V(1,0),self.transform),Transform(V(tr.pos.x-sqrtD,0),V(1,0),self.transform)])
+            return self.DoesIntersect([Transform(V(tr.pos.x+sqrtD,0),V(1,0),self.transform),Transform(V(tr.pos.x-sqrtD,0),V(1,0),self.transform)])
         else: return []
-    def ThatIntersect(self,l):
+    def DoesIntersect(self,l):
         'overridden by the subclasses Ray and LineSegment'
         return l
 class Ray(Line):
+    'a ray (half-line) starting at the origin and continuing along the x-axis in the positive x direction, transformed by its transform'
     def __init__(self,transform):
         super().__init__(transform)
-    def ThatIntersect(self, l):
+    def DoesIntersect(self, l):
         out = []
         for i in l:
             if 0<=i.pos.x:
                 out.append(i)
         return out
 class LineSegment(Line):
+    'a line segment between the origin and the point (1,0), transformed by its transform'
     def __init__(self,transform):
         super().__init__(transform)
-    def ThatIntersect(self, l):
+    def DoesIntersect(self, l):
         out = []
         for i in l:
             if 0<=i.pos.x<=1:
@@ -134,13 +137,25 @@ class Transform:
         self.parent=parent
         self.pos=pos
         self.rot=rot
+        self.world=None
+    def detachFrom(self,parent):
+        return Transform(parent.pos+self.pos*parent.rot,self.rot*parent.rot,parent.parent)
     def detachOnce(self):
-        return Transform(self.parent.pos+self.pos*self.parent.rot,self.rot*self.parent.rot,self.parent.parent)
+        return self.detachFrom(self.parent)
     def detach(self,until=None): #probably needs optimization idk
+        'gets the transform\'s world coordinates'
         c = self
         while c.parent!=until:
             c = c.detachOnce()
         return c
+    def getWorld(self):
+        'gets the transform\'s world coordinates. Also saves them for optimization purposes. \n WARNING: must be reset after an ancestor has moved.'
+        if not self.world:
+            if self.parent:
+                self.world = self.detachFrom(self.parent.getWorld())
+            else:
+                self.world = self
+        return self.world
     def Become(self,other):
         self.__dict__=other.__dict__
     def copy(self):
