@@ -1,6 +1,7 @@
 import pygame
 
 from ComplexVector import CompVec as cv
+from Transform import Transform
 
 def V(x,y):
     "shorthand for ComplexVector.CompVec(x,y)"
@@ -83,7 +84,7 @@ class GameObject:
         pass
     def Init(self,scene):
         pass
-    def Draw(self,canvas:ScaledCanvas):
+    def Draw(self,canvas):
         pass
     def Update(self,scene):
         pass
@@ -113,6 +114,7 @@ class Scene:
             f(self)
         for o in self.objects:
             o.Update(self)
+        for o in self.objects:
             o.Draw(self.canvas)
 
         return self.canvas.GetSurface()
