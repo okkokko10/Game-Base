@@ -88,38 +88,44 @@ class Line(Shape):
         tr=transform.attach(self.transform)
         tr.pos=V(tr.pos.x,0)
         return self.DoesIntersect([tr])
-    def IntersectCircle(self,circle):
+    def IntersectCircle(self,circle,ancestor=None):
         'returns the points at which the circle intersects the line. returns None if it doesn\'t'
         assert isinstance(circle,Circle)
-        tr=circle.transform.attach(self.transform)
+        tr=circle.transform.attach(self.transform,ancestor)
         D=tr.rot.lengthSq()-tr.pos.y**2
         if D>=0:
             sqrtD=D**0.5
             return self.DoesIntersect([Transform(V(tr.pos.x+sqrtD,0),V(1,0),self.transform),Transform(V(tr.pos.x-sqrtD,0),V(1,0),self.transform)])
         else: return []
+    def IntersectLine(self,line,ancestor=None):
+        'returns a list containing a single transform with the position at the intersection. Works with rays and line segments, and returns an empty list if the lines are parallel or do not intersect due to being line segments/rays'
+        assert isinstance(line,Line)
+        tr=line.transform.attach(self.transform,ancestor)
+        px,py=tr.pos
+        vx,vy=tr.rot
+        if vy==0:
+            return []
+        out=Transform(V(px-py*vx/vy),V(1,0),self.transform)
+        if self.DoesIntersectSingle(out) and line.DoesIntersectSingle(out.attach(tr,self.transform)):
+            return [out]
+        else: return []
     def DoesIntersect(self,l):
+        return [t for t in l if self.DoesIntersectSingle(t)]
+    def DoesIntersectSingle(self,t):
         'overridden by the subclasses Ray and LineSegment'
-        return l
+        return True
 class Ray(Line):
     'a ray (half-line) starting at the origin and continuing along the x-axis in the positive x direction, transformed by its transform'
     def __init__(self,transform):
         super().__init__(transform)
-    def DoesIntersect(self, l):
-        out = []
-        for i in l:
-            if 0<=i.pos.x:
-                out.append(i)
-        return out
+    def DoesIntersectSingle(self, t):
+        return 0<=t.pos.x
 class LineSegment(Line):
     'a line segment between the origin and the point (1,0), transformed by its transform'
     def __init__(self,transform):
         super().__init__(transform)
-    def DoesIntersect(self, l):
-        out = []
-        for i in l:
-            if 0<=i.pos.x<=1:
-                out.append(i)
-        return out
+    def DoesIntersectSingle(self, t):
+        return 0<=t.pos.x<=1
 
 class Circle(Shape):
     'a circle with its center at the origin and its radius 1, transformed by its transform'
@@ -186,6 +192,37 @@ class Transform:
             #assert c.parent!=None
             l.append(l[-1].parent)
         return l
+
+class Polygon(Shape):
+    def __init__(self,transform,points):
+        self.transform=transform
+        self.points=points
+        self.genLines()
+    def genLines(self):
+        self.lines=[]
+        for i in len(self.points):
+            self.lines.append(
+            LineSegment(
+            Transform(
+            self.points[i],
+            self.points[i-1]-self.points[i],
+            self.transform
+            )))
+    def IsInside(self,transform):
+        'inverted if the origin is outside. is not yet foolproof.'
+        assert isinstance(transform,Transform)
+        tr = transform.attach(self.transform)
+        between=LineSegment(Transform(V(0,0),tr.pos,self.transform))
+        passes=0
+        for s in self.lines:
+            assert isinstance(s,LineSegment)
+            passes+= bool(s.IntersectLine(between,self.transform))
+        if passes&1:
+            return False
+        else:
+            return True
+            
+        
 
 
 class Combination:
