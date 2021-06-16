@@ -14,7 +14,7 @@ class Transform:
         c = self
         while c.parent!=until:
             c = c.detachOnce()
-        return c
+        return c.copy()
     def getWorld(self):
         'gets the transform\'s world coordinates. Also saves them for optimization purposes. \n WARNING: must be reset after an ancestor has moved.'
         if not self.world:

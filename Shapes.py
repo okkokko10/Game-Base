@@ -5,7 +5,7 @@ def sign(x):
     return math.copysign(1,x)
 class Shape:
     def Intersect(self,other):
-        pass
+        return []
     pass
 
 '''
@@ -140,6 +140,7 @@ class Circle(Shape):
     pass
 
 class Polygon(Shape):
+    lines:list[LineSegment]
     def __init__(self,transform,points):
         self.transform=transform
         self.points=points
@@ -167,8 +168,14 @@ class Polygon(Shape):
             return False
         else:
             return True
-            
-        
+    def Intersect(self, other):
+        out=[]
+        indices=[]
+        for i in range(len(self.lines)):
+            a=self.lines[i].Intersect(other)
+            if a:
+                out+=a
+        return out
 
 
 class Combination:
