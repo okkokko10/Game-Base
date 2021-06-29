@@ -67,8 +67,23 @@ class ChopPolygon(Polygon):
         for k in groupVertices:
             newPolygons.append(ChopPolygon(self.transform.copy(),groupVertices))
         return newPolygons
+class ChopPolygonGameObject(ShapeObject):
+    def __init__(self, polygon,color):
+        self.shape=polygon
+        self.color=color
+    def Update(self, scene):
+        return super().Update(scene)
 
-        
+if __name__=='__main__':
+    tr=Transform(V(0,0),V(1/100,0))
+    a=Scene(TrCanvas(V(800,800),tr))
+    b=Display(V(800,800))
+    col=(100,100,100)
+    a.AddObject(ShapeObject(Circle(Transform(V(1,1),V(1,0))),col))
+    a.AddObject(ShapeObject(LineSegment(Transform(V(2,1),V(1,0))),col))
+    a.AddObject(MoveCamera())
+
+    b.Loop(a.ScreenUpdate)        
         
 
-            
+

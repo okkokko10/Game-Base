@@ -140,7 +140,6 @@ class Circle(Shape):
     pass
 
 class Polygon(Shape):
-    lines:list[LineSegment]
     def __init__(self,transform,points):
         self.transform=transform
         self.points=points
