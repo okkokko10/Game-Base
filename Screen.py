@@ -78,7 +78,7 @@ class ScaledCanvas:
         self.canvas.Blit(pygame.transform.scale(source,iV(size*self.zoom)),self.TransformPos(dest))
 class GameObject:
     active:bool
-    def __init__(self,*args):
+    def __init__(self,*args,**kvargs):
         pass
     def Remove(self):
         pass

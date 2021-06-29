@@ -39,3 +39,7 @@ class MoveCamera(GameObject):
             tr.rot*=V(1,0.1)
         elif scene.inputs.IsKeyPressed(pygame.K_e):
             tr.rot*=1/V(1,0.1)
+        if scene.inputs.IsKeyPressed(pygame.K_r):
+            tr.rot*=1.1
+        elif scene.inputs.IsKeyPressed(pygame.K_f):
+            tr.rot/=1.1
