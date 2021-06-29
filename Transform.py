@@ -16,7 +16,7 @@ class Transform:
             c = c.detachOnce()
         return c.copy()
     def getWorld(self):
-        'gets the transform\'s world coordinates. Also saves them for optimization purposes. \n WARNING: must be reset after an ancestor has moved.'
+        'deprecated, use detach() \n\n gets the transform\'s world coordinates. Also saves them for optimization purposes. \n WARNING: must be reset after an ancestor has moved.'
         if not self.world:
             if self.parent:
                 self.world = self.detachFrom(self.parent.getWorld())
@@ -57,3 +57,5 @@ class Transform:
         self.pos+=tr.attach(self.pos,ancestor).pos
     def Rotate(self,rotationCompVec):
         self.rot*=rotationCompVec
+    def TranslateVector(self,vec):
+        self.Translate(Transform(vec,V(1,0)))

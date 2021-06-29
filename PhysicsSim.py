@@ -1,19 +1,26 @@
 from ShapeDraw import *
 import random
-class PhysicsObject(GameObject):
-    def __init__(self, posTr, velVec):
-        self.posTr,self.velVec=posTr,velVec
+class PositionComponent(Component):
+    def __init__(self,transform:Transform):
+        self.transform=transform
+    def TranslateVector(self,vec):
+        self.transform.TranslateVector(vec)
+class PhysicsComponent(Component):
+    def __init__(self, velVec):
+        self.velVec=velVec
         self.acceleration=V(0,0)
-    def Update(self, scene):
-        self.UpdatePos(scene.deltaTime)
+    def Update(self, gameObject, scene):
+        self.UpdatePos(gameObject,scene.deltaTime)
         return super().Update(scene)
-    def Accelerate(self,amount):
+    def AccelerateVector(self,amount):
         self.acceleration+=amount
-    def UpdatePos(self,deltaTime):
+    def AccelerateTransform(self,tr):
+        self.AccelerateVector(tr.detach().pos)
+    def UpdatePos(self,gameObject,deltaTime):
         self.velVec+=self.acceleration*deltaTime/1000
         self.acceleration=V(0,0)
-        self.posTr.pos+=self.velVec*deltaTime/1000
-class testPhysicsParticle(PhysicsObject):
+        gameObject.components[PositionComponent].TranslateVector(self.velVec*deltaTime/1000)
+class testPhysicsParticle(PhysicsComponent):#not ready
     def __init__(self, posTr, mass, velVec):
         super().__init__(posTr, velVec)
         self.mass=mass
@@ -28,7 +35,7 @@ class testPhysicsParticle(PhysicsObject):
         return super().Init(scene)
     def Update(self, scene:Scene):
         for o in scene.objects:
-            if isinstance(o,PhysicsObject) and not o == self:
+            if isinstance(o,PhysicsComponent) and not o == self:
                 self.Attract(o)
         return super().Update(scene)
     def Attract(self,other):

@@ -93,6 +93,7 @@ class Scene:
     def AddObject(self,gameObject):
         gameObject.active=True
         self.objects.add(gameObject)
+        gameObject.scene=self
         gameObject.Init(self)
     def ScreenUpdate(self,events,deltaTime):
         self.events=events
@@ -112,6 +113,7 @@ class Scene:
         pass
 class GameObject:
     active:bool
+    scene:Scene
     def __init__(self,*args,**kvargs):
         self.components={}
     def Remove(self):
@@ -127,7 +129,15 @@ class GameObject:
     def Update(self,scene:Scene):
         for c in self.components:
             self.components[c].Update(self,scene)
+    def AddComponent(self,component):
+        self.components[component.type]=component
+        component.gameObject=self
+        if self.active:
+            component.active=True
+            component.Init(self,self.scene)
 class Component:
+    active:bool
+    gameObject:GameObject
     def Update(self, gameObject:GameObject, scene: Scene):
         pass
     def Draw(self, gameObject:GameObject, canvas):
