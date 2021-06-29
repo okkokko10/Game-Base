@@ -53,3 +53,7 @@ class Transform:
             #assert c.parent!=None
             l.append(l[-1].parent)
         return l
+    def Translate(self,tr,ancestor=None):
+        self.pos+=tr.attach(self.pos,ancestor).pos
+    def Rotate(self,rotationCompVec):
+        self.rot*=rotationCompVec

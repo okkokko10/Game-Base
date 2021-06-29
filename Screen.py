@@ -76,18 +76,7 @@ class ScaledCanvas:
         return self.zoom
     def Blit(self,source,dest,size):
         self.canvas.Blit(pygame.transform.scale(source,iV(size*self.zoom)),self.TransformPos(dest))
-class GameObject:
-    active:bool
-    def __init__(self,*args,**kvargs):
-        pass
-    def Remove(self):
-        pass
-    def Init(self,scene):
-        pass
-    def Draw(self,canvas):
-        pass
-    def Update(self,scene):
-        pass
+
 
 class Scene:
     def __init__(self,canvas=None):
@@ -120,6 +109,32 @@ class Scene:
         return self.canvas.GetSurface()
     def UpdateInputs(self):
         self.inputs.Update(self)
+        pass
+class GameObject:
+    active:bool
+    def __init__(self,*args,**kvargs):
+        self.components={}
+    def Remove(self):
+        for c in self.components:
+            self.components[c].Remove(self)
+    def Init(self,scene:Scene):
+        '''what should happen when the object is initialized into a scene with Scene.AddObject.\n\n Call scene.AddObject on any child objects to initialize them into the scene too'''
+        for c in self.components:
+            self.components[c].Init(self,scene)
+    def Draw(self,canvas):
+        for c in self.components:
+            self.components[c].Draw(self,canvas)
+    def Update(self,scene:Scene):
+        for c in self.components:
+            self.components[c].Update(self,scene)
+class Component:
+    def Update(self, gameObject:GameObject, scene: Scene):
+        pass
+    def Draw(self, gameObject:GameObject, canvas):
+        pass
+    def Init(self, gameObject:GameObject, scene: Scene):
+        pass
+    def Remove(self, gameObject:GameObject):
         pass
 class Inputs:
     def __init__(self):
