@@ -1,8 +1,6 @@
 import pygame
 
 from ComplexVector import CompVec as cv
-from Transform import Transform
-
 def V(x,y):
     "shorthand for ComplexVector.CompVec(x,y)"
     return cv(x,y)
@@ -14,6 +12,8 @@ def iV(v):
     shorthand for int(v[0]),int(v[1])'''
     return int(v[0]),int(v[1])
     
+from Transform import Transform
+
 
 class Display:
     def __init__(self,size):
@@ -94,7 +94,7 @@ class Scene:
         gameObject.active=True
         self.objects.add(gameObject)
         gameObject.scene=self
-        gameObject.Init(self)
+        gameObject.Init()
     def ScreenUpdate(self,events,deltaTime):
         self.events=events
         self.deltaTime=deltaTime
@@ -103,7 +103,7 @@ class Scene:
         for f in self.globalMethods:
             f(self)
         for o in self.objects:
-            o.Update(self)
+            o.Update()
         for o in self.objects:
             o.Draw(self.canvas)
 
@@ -112,39 +112,39 @@ class Scene:
         self.inputs.Update(self)
         pass
 class GameObject:
-    active:bool
+    active=False
     scene:Scene
     def __init__(self,*args,**kvargs):
         self.components={}
     def Remove(self):
         for c in self.components:
-            self.components[c].Remove(self)
-    def Init(self,scene:Scene):
+            self.components[c].Remove()
+    def Init(self):
         '''what should happen when the object is initialized into a scene with Scene.AddObject.\n\n Call scene.AddObject on any child objects to initialize them into the scene too'''
         for c in self.components:
-            self.components[c].Init(self,scene)
+            self.components[c].Init()
     def Draw(self,canvas):
         for c in self.components:
-            self.components[c].Draw(self,canvas)
-    def Update(self,scene:Scene):
+            self.components[c].Draw(canvas)
+    def Update(self):
         for c in self.components:
-            self.components[c].Update(self,scene)
+            self.components[c].Update()
     def AddComponent(self,component):
-        self.components[component.type]=component
+        self.components[component.__class__]=component
         component.gameObject=self
         if self.active:
             component.active=True
-            component.Init(self,self.scene)
+            component.Init()
 class Component:
-    active:bool
+    active=False
     gameObject:GameObject
-    def Update(self, gameObject:GameObject, scene: Scene):
+    def Update(self):
         pass
-    def Draw(self, gameObject:GameObject, canvas):
+    def Draw(self, canvas):
         pass
-    def Init(self, gameObject:GameObject, scene: Scene):
+    def Init(self):
         pass
-    def Remove(self, gameObject:GameObject):
+    def Remove(self):
         pass
 class Inputs:
     def __init__(self):

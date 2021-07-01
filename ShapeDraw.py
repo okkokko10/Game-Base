@@ -1,16 +1,12 @@
 from Screen import *
 from Shapes import *
 from TransformCanvas import *
-class ShapeObject(GameObject):
+class ShapeComponent(Component):
     active:bool
     def __init__(self,shape,color):
         self.shape=shape
         self.color=color
-        pass
-    def Remove(self):
-        pass
-    def Init(self,scene):
-        pass
+        super().__init__()
     def Draw(self,canvas):
         if isinstance(self.shape,Circle):
             canvas.DrawCircle(self.shape.transform,self.color)
@@ -19,9 +15,7 @@ class ShapeObject(GameObject):
         elif isinstance(self.shape,Polygon):
             for line in self.shape.lines:
                 canvas.DrawLine(line.transform,self.color)
-        pass
-    def Update(self,scene):
-        pass
+        super().Draw(canvas)
 
 if __name__=='__main__':
     tr=Transform(V(0,0),V(1/100,0))

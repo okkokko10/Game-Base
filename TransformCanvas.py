@@ -25,7 +25,8 @@ class TrCanvas:
         self.canvas.Blit(source,destTransform.attach(self.transform).pos)
 
 class MoveCamera(GameObject):
-    def Update(self,scene:Scene):
+    def Update(self):
+        scene=self.scene
         tr=scene.canvas.transform
         if scene.inputs.IsKeyPressed(pygame.K_a):
             tr.pos+=tr.rot*V(-10,0)

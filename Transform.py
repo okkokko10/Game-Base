@@ -54,8 +54,8 @@ class Transform:
             l.append(l[-1].parent)
         return l
     def Translate(self,tr,ancestor=None):
-        self.pos+=tr.attach(self.pos,ancestor).pos
+        self.pos+=tr.attach(self,ancestor).rot
     def Rotate(self,rotationCompVec):
         self.rot*=rotationCompVec
     def TranslateVector(self,vec):
-        self.Translate(Transform(vec,V(1,0)))
+        self.Translate(Transform(V(0,0),vec))

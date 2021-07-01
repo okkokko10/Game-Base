@@ -9,17 +9,18 @@ class PhysicsComponent(Component):
     def __init__(self, velVec):
         self.velVec=velVec
         self.acceleration=V(0,0)
-    def Update(self, gameObject, scene):
-        self.UpdatePos(gameObject,scene.deltaTime)
-        return super().Update(scene)
+    def Update(self):
+        self.UpdatePos()
+        return super().Update()
     def AccelerateVector(self,amount):
         self.acceleration+=amount
     def AccelerateTransform(self,tr):
         self.AccelerateVector(tr.detach().pos)
-    def UpdatePos(self,gameObject,deltaTime):
+    def UpdatePos(self):
+        deltaTime=self.gameObject.scene.deltaTime
         self.velVec+=self.acceleration*deltaTime/1000
         self.acceleration=V(0,0)
-        gameObject.components[PositionComponent].TranslateVector(self.velVec*deltaTime/1000)
+        self.gameObject.components[PositionComponent].TranslateVector(self.velVec*deltaTime/1000)
 class testPhysicsParticle(PhysicsComponent):#not ready
     def __init__(self, posTr, mass, velVec):
         super().__init__(posTr, velVec)
