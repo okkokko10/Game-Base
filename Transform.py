@@ -32,7 +32,10 @@ class Transform:
     def attach(self,newParent,ancestor=None):
         'returns a new transform that has identical world coordinates but has newParent as parent'
         unattached=self.detach(ancestor)
-        parent=newParent.detach(ancestor)
+        if newParent==None:
+            parent=Transform(V0,V1)
+        else:
+            parent=newParent.detach(ancestor)
         # unattached.pos = parent.pos+self.pos*parent.rot
         # unattached.rot = self.rot*parent.rot
         # unattached.parent = parent.parent
@@ -54,7 +57,7 @@ class Transform:
             l.append(l[-1].parent)
         return l
     def Translate(self,tr,ancestor=None):
-        self.pos+=tr.attach(self,ancestor).rot
+        self.pos+=tr.attach(self.parent,ancestor).rot
     def Rotate(self,rotationCompVec):
         self.rot*=rotationCompVec
     def TranslateVector(self,vec):

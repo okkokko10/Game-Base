@@ -124,12 +124,18 @@ class Scene:
     def UpdateInputs(self):
         self.inputs.Update(self)
         pass
+    def RemoveObject(self,gameObject):
+        if gameObject in self.objects:
+            gameObject.Remove()
+            self.objects.remove(gameObject)
+
 class GameObject:
     active=False
     scene:Scene
     def __init__(self,*args,**kvargs):
         self.components={}
     def Remove(self):
+        self.active=False
         for c in self.components:
             self.components[c].Remove()
     def Init(self):
@@ -149,11 +155,9 @@ class GameObject:
             component.active=True
             component.Init()
     def GetComponent(self,t):
-        if t in self.components:
-            o=self.components[t]
-            assert(isinstance(o,t))
-            return o
-        return None
+        o=self.components[t]
+        assert(isinstance(o,t))
+        return o
 class Component:
     active=False
     gameObject:GameObject
@@ -164,6 +168,7 @@ class Component:
     def Init(self):
         pass
     def Remove(self):
+        self.active=False
         pass
 
 class C_Position(Component):
