@@ -1,6 +1,5 @@
 from Shapes import *
 from Screen import *
-
 class TrCanvas:
     def __init__(self,size,transform):
         self.canvas=Canvas(size)
@@ -24,10 +23,10 @@ class TrCanvas:
     def Blit(self,source,destTransform):
         self.canvas.Blit(source,destTransform.attach(self.transform).pos)
 
-class MoveCamera(GameObject):
+class C_inputMove(Component):
     def Update(self):
-        scene=self.scene
-        tr=scene.canvas.transform
+        tr=self.gameObject.GetComponent(C_Position).transform
+        scene=self.gameObject.scene
         if scene.inputs.IsKeyPressed(pygame.K_a):
             tr.pos+=tr.rot*V(-10,0)
         elif scene.inputs.IsKeyPressed(pygame.K_d):
@@ -44,3 +43,11 @@ class MoveCamera(GameObject):
             tr.rot*=1.1
         elif scene.inputs.IsKeyPressed(pygame.K_f):
             tr.rot/=1.1
+
+class C_Camera(Component):
+    def __init__(self,trCanvas) -> None:
+        self.canvas=trCanvas
+        super().__init__()
+    def Init(self):
+        self.gameObject.scene.canvas=self.canvas
+        return super().Init()

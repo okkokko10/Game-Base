@@ -59,3 +59,6 @@ class Transform:
         self.rot*=rotationCompVec
     def TranslateVector(self,vec):
         self.Translate(Transform(V(0,0),vec))
+    @staticmethod
+    def FromVector(vec):
+        return Transform(vec,V(1,0))

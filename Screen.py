@@ -11,25 +11,39 @@ def iV(v):
     '''can be used to turn a vector into a grid coordinate \n
     shorthand for int(v[0]),int(v[1])'''
     return int(v[0]),int(v[1])
-    
+V0=V(0,0)
+V1=V(1,0)
 from Transform import Transform
 
-
 class Display:
-    def __init__(self,size):
+    def __init__(self):
+        pygame.display.set_mode((1,1))
+        self.canvas=None
+        pass
+    def InitCanvas(self,size):
         self.canvas = pygame.display.set_mode(iV(size))
-    def Update(self,surface):
-        self.canvas.blit(surface,(0,0))
-        pygame.display.update()
+    def Update(self,inp):
+        if isinstance(inp,pygame.Surface):
+            if not self.canvas:
+                self.InitCanvas(inp.get_size())
+            self.canvas.blit(inp,(0,0))
+            pygame.display.update()
+        elif isinstance(inp,str):
+            print(inp)
     def Loop(self,function,speed=50):
-        """function(events,deltaTime) -> surface"""
+        """function(events,deltaTime) -> surface|None|str|-1"""
         while True:
-            d=pygame.time.wait(speed)
-            if pygame.event.get(pygame.QUIT):
+            o=self.onceLoop(function,speed)
+            if o==-1:
                 return
-            events = pygame.event.get()
-            out = function(events,d)
-            self.Update(out)
+            self.Update(o)
+    def onceLoop(self,function,speed):
+        d=pygame.time.wait(speed)
+        if pygame.event.get(pygame.QUIT):
+            return -1
+        events = pygame.event.get()
+        return function(events,d)
+
         
 class Canvas:
     def __init__(self,size):
@@ -80,10 +94,7 @@ class ScaledCanvas:
 
 class Scene:
     def __init__(self,canvas=None):
-        if canvas:
-            self.canvas=canvas
-        else:
-            self.canvas=ScaledCanvas(V(800,800),V(0,0),100)
+        self.canvas=canvas
         self.objects=set()
         self.deltaTime=0
         self.globalMethods=set()
@@ -99,15 +110,17 @@ class Scene:
         self.events=events
         self.deltaTime=deltaTime
         self.UpdateInputs()
-        self.canvas.Fill((0,100,0))
         for f in self.globalMethods:
             f(self)
         for o in self.objects:
             o.Update()
-        for o in self.objects:
-            o.Draw(self.canvas)
+        if self.canvas:
+            self.canvas.Fill((0,100,0))
+            for o in self.objects:
+                o.Draw(self.canvas)
 
-        return self.canvas.GetSurface()
+            return self.canvas.GetSurface()
+        return None
     def UpdateInputs(self):
         self.inputs.Update(self)
         pass
@@ -135,6 +148,12 @@ class GameObject:
         if self.active:
             component.active=True
             component.Init()
+    def GetComponent(self,t):
+        if t in self.components:
+            o=self.components[t]
+            assert(isinstance(o,t))
+            return o
+        return None
 class Component:
     active=False
     gameObject:GameObject
@@ -146,7 +165,14 @@ class Component:
         pass
     def Remove(self):
         pass
+
+class C_Position(Component):
+    def __init__(self,transform:Transform):
+        self.transform=transform
+    def TranslateVector(self,vec):
+        self.transform.TranslateVector(vec)
 class Inputs:
+    mousePos:Transform
     def __init__(self):
         self.keysDown={}
         self.mousePosScreen=V(0,0)

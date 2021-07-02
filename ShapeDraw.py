@@ -1,7 +1,7 @@
 from Screen import *
 from Shapes import *
 from TransformCanvas import *
-class ShapeComponent(Component):
+class C_Shape(Component):
     active:bool
     def __init__(self,shape,color):
         self.shape=shape

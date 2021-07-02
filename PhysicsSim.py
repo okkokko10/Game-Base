@@ -1,14 +1,10 @@
 from ShapeDraw import *
 import random
-class PositionComponent(Component):
-    def __init__(self,transform:Transform):
-        self.transform=transform
-    def TranslateVector(self,vec):
-        self.transform.TranslateVector(vec)
-class PhysicsComponent(Component):
+class C_Inertia(Component):
     def __init__(self, velVec):
         self.velVec=velVec
         self.acceleration=V(0,0)
+        self.accelerationGradual=V(0,0)
     def Update(self):
         self.UpdatePos()
         return super().Update()
@@ -16,12 +12,17 @@ class PhysicsComponent(Component):
         self.acceleration+=amount
     def AccelerateTransform(self,tr):
         self.AccelerateVector(tr.detach().pos)
+    def AccelerateVectorGradual(self,amount):
+        self.accelerationGradual+=amount
+    def AccelerateTransformGradual(self,tr):
+        self.AccelerateVectorGradual(tr.detach().pos)
     def UpdatePos(self):
         deltaTime=self.gameObject.scene.deltaTime
-        self.velVec+=self.acceleration*deltaTime/1000
+        self.velVec+=self.accelerationGradual*deltaTime/1000+self.acceleration
         self.acceleration=V(0,0)
-        self.gameObject.components[PositionComponent].TranslateVector(self.velVec*deltaTime/1000)
-class testPhysicsParticle(PhysicsComponent):#not ready
+        self.accelerationGradual=V(0,0)
+        self.gameObject.GetComponent(C_Position).TranslateVector(self.velVec*deltaTime/1000)
+class testPhysicsParticle(C_Inertia):#not ready
     def __init__(self, posTr, mass, velVec):
         super().__init__(posTr, velVec)
         self.mass=mass
@@ -36,7 +37,7 @@ class testPhysicsParticle(PhysicsComponent):#not ready
         return super().Init(scene)
     def Update(self, scene:Scene):
         for o in scene.objects:
-            if isinstance(o,PhysicsComponent) and not o == self:
+            if isinstance(o,C_Inertia) and not o == self:
                 self.Attract(o)
         return super().Update(scene)
     def Attract(self,other):

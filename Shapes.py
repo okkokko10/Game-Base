@@ -176,12 +176,3 @@ class Polygon(Shape):
                 out+=a
         return out
 
-
-class Combination:
-    def __init__(self):
-        pass
-    def IsInside(self,transform) -> bool:
-        return 
-class C_union(Combination):
-    def __init__(self,shapes):
-        self.shapes=shapes
