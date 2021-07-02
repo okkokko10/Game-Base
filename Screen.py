@@ -134,18 +134,18 @@ class GameObject:
     scene:Scene
     def __init__(self,*args,**kvargs):
         self.components={}
-    def Remove(self):
+    def O_OnRemove(self):
         self.active=False
         for c in self.components:
             self.components[c].Remove()
-    def Init(self):
+    def O_OnInit(self):
         '''what should happen when the object is initialized into a scene with Scene.AddObject.\n\n Call scene.AddObject on any child objects to initialize them into the scene too'''
         for c in self.components:
             self.components[c].Init()
-    def Draw(self,canvas):
+    def O_OnDraw(self,canvas):
         for c in self.components:
             self.components[c].Draw(canvas)
-    def Update(self):
+    def O_OnUpdate(self):
         for c in self.components:
             self.components[c].Update()
     def AddComponent(self,component):
@@ -161,13 +161,13 @@ class GameObject:
 class Component:
     active=False
     gameObject:GameObject
-    def Update(self):
+    def O_OnUpdate(self):
         pass
-    def Draw(self, canvas):
+    def O_OnDraw(self, canvas):
         pass
-    def Init(self):
+    def O_OnInit(self):
         pass
-    def Remove(self):
+    def O_OnRemove(self):
         self.active=False
         pass
 

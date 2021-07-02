@@ -12,10 +12,10 @@ class C_Health(Component):
     def Heal(self,amount):
         self.hp+=amount
         return
-    def Update(self):
+    def O_OnUpdate(self):
         if self.hp<=0:
             self.gameObject
-        return super().Update()
+        return super().O_OnUpdate()
 
 class Entity(GameObject):
     def __init__(self, posTr,hp):
@@ -34,12 +34,12 @@ class Projectile(GameObject):
         shape=LineSegment(Transform(V0,V(size,0),posTr))
         self.AddComponent(C_Shape(shape,color))
 class Player(Entity):
-    def Update(self):
+    def O_OnUpdate(self):
         if self.scene.inputs.IsKeyPressed(pygame.K_LSHIFT):
             k=self.scene.inputs.GetMousePos().detach().pos-self.GetComponent(C_Position).transform.detach().pos
             self.GetComponent(C_Inertia).AccelerateVectorGradual(k.normalize()*10)
         
-        return super().Update()
+        return super().O_OnUpdate()
     
 
 if __name__=='__main__':

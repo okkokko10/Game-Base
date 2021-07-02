@@ -24,7 +24,8 @@ class TrCanvas:
         self.canvas.Blit(source,destTransform.attach(self.transform).pos)
 
 class C_inputMove(Component):
-    def Update(self):
+    def O_OnUpdate(self):
+        super().O_OnUpdate()
         tr=self.gameObject.GetComponent(C_Position).transform
         scene=self.gameObject.scene
         if scene.inputs.IsKeyPressed(pygame.K_a):
@@ -48,6 +49,6 @@ class C_Camera(Component):
     def __init__(self,trCanvas) -> None:
         self.canvas=trCanvas
         super().__init__()
-    def Init(self):
+    def O_OnInit(self):
         self.gameObject.scene.canvas=self.canvas
-        return super().Init()
+        return super().O_OnInit()
