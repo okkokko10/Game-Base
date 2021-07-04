@@ -46,9 +46,13 @@ class C_inputMove(Component):
             tr.rot/=1.1
 
 class C_Camera(Component):
-    def __init__(self,trCanvas) -> None:
-        self.canvas=trCanvas
+    def __init__(self,transform,size) -> None:
+        self.transform=transform
+        self.size=size
         super().__init__()
     def O_OnInit(self):
-        self.gameObject.scene.canvas=self.canvas
+        self.gameObject.scene.canvas=TrCanvas(self.size,self.transform.detach())
         return super().O_OnInit()
+    def O_OnUpdate(self):
+        self.gameObject.scene.canvas.transform.Become(self.transform.detach())
+        return super().O_OnUpdate()

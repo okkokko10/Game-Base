@@ -100,24 +100,41 @@ class Scene:
         self.globalMethods=set()
         self.events=[]
         self.inputs=Inputs()
+        self.removeObjectBuffer=set()
+        self.addObjectBuffer=[]
+        self.totalTime=0
         pass
     def AddObject(self,gameObject):
-        gameObject.active=True
-        self.objects.add(gameObject)
-        gameObject.scene=self
-        gameObject.Init()
+        self.addObjectBuffer.append(gameObject)
+    def trueAddObjects(self):
+        i=0
+        while i< len(self.addObjectBuffer):
+            gameObject=self.addObjectBuffer[i]
+            gameObject.active=True
+            self.objects.add(gameObject)
+            gameObject.scene=self
+            gameObject.O_OnInit()
+            i+=1
+        self.addObjectBuffer.clear()
     def ScreenUpdate(self,events,deltaTime):
         self.events=events
         self.deltaTime=deltaTime
+        self.totalTime+=deltaTime
         self.UpdateInputs()
         for f in self.globalMethods:
             f(self)
         for o in self.objects:
-            o.Update()
+            o.O_OnPreUpdate()
+        for o in self.objects:
+            o.O_OnUpdate()
+        self.trueAddObjects()
+        for o in self.removeObjectBuffer:
+            self.objects.remove(o)
+        self.removeObjectBuffer.clear()
         if self.canvas:
             self.canvas.Fill((0,100,0))
             for o in self.objects:
-                o.Draw(self.canvas)
+                o.O_OnDraw(self.canvas)
 
             return self.canvas.GetSurface()
         return None
@@ -126,38 +143,52 @@ class Scene:
         pass
     def RemoveObject(self,gameObject):
         if gameObject in self.objects:
-            gameObject.Remove()
-            self.objects.remove(gameObject)
+            gameObject.O_OnRemove()
+            self.removeObjectBuffer.add(gameObject)
 
 class GameObject:
     active=False
     scene:Scene
+    birthTime:int
     def __init__(self,*args,**kvargs):
         self.components={}
     def O_OnRemove(self):
         self.active=False
         for c in self.components:
-            self.components[c].Remove()
+            self.components[c].O_OnRemove()
     def O_OnInit(self):
         '''what should happen when the object is initialized into a scene with Scene.AddObject.\n\n Call scene.AddObject on any child objects to initialize them into the scene too'''
+        self.birthTime=self.scene.totalTime
         for c in self.components:
-            self.components[c].Init()
+            self.components[c].O_OnInit()
     def O_OnDraw(self,canvas):
         for c in self.components:
-            self.components[c].Draw(canvas)
+            self.components[c].O_OnDraw(canvas)
     def O_OnUpdate(self):
         for c in self.components:
-            self.components[c].Update()
+            self.components[c].O_OnUpdate()
     def AddComponent(self,component):
         self.components[component.__class__]=component
         component.gameObject=self
         if self.active:
             component.active=True
-            component.Init()
+            component.O_OnInit()
     def GetComponent(self,t):
         o=self.components[t]
         assert(isinstance(o,t))
         return o
+    def RemoveComponent(self,componentType):
+        self.components[componentType].O_OnRemove()
+        del self.components[componentType]
+    def O_OnPreUpdate(self):
+        for c in self.components:
+            self.components[c].O_OnPreUpdate()
+    def Remove(self):
+        self.scene.RemoveObject(self)
+    def HasComponent(self,componentType):
+        return componentType in self.components
+    def GetAge(self):
+        return self.scene.totalTime-self.birthTime
 class Component:
     active=False
     gameObject:GameObject
@@ -169,6 +200,10 @@ class Component:
         pass
     def O_OnRemove(self):
         self.active=False
+        pass
+    def Remove(self):
+        self.gameObject.RemoveComponent(self.__class__)
+    def O_OnPreUpdate(self):
         pass
 
 class C_Position(Component):

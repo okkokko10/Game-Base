@@ -17,6 +17,8 @@ class CompVec(complex):
     x:float
     y:float
     def normalize(self):
+        if self.x==0 and self.y==0:
+            return CompVec(0,0)
         return self/abs(self)
     def __new__(cls,x,y=None):
         if y:

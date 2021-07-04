@@ -5,6 +5,14 @@ def sign(x):
     return math.copysign(1,x)
 class Shape:
     def Intersect(self,other):
+        if self==other:
+            return []
+        if isinstance(other,Circle):
+            return self.IntersectCircle(other)
+        elif isinstance(other,Line):
+            return self.IntersectLine(other)
+        elif isinstance(other,Polygon):
+            return other.Intersect(self)
         return []
     pass
 
@@ -106,7 +114,7 @@ class Line(Shape):
         vx,vy=tr.rot
         if vy==0:
             return []
-        out=Transform(V(px-py*vx/vy),V(1,0),self.transform)
+        out=Transform(V(px-py*vx/vy,0),V(1,0),self.transform)
         if self.DoesIntersectSingle(out) and line.DoesIntersectSingle(out.attach(tr,self.transform)):
             return [out]
         else: return []
@@ -137,6 +145,21 @@ class Circle(Shape):
     #     line.IntersectCircle(self.transform,self.radius,True)
     def IsInside(self,transform):
         return self.transform.distance(transform) <= 1
+    def IntersectLine(self,line):
+        return line.IntersectCircle(self)
+    def IntersectCircle(self,circle):
+        tr=circle.transform.attach(self.transform)
+        distanceSq=tr.pos.lengthSq()
+        sizeSq=tr.rot.lengthSq()
+        if distanceSq==0:
+            return []
+        x1=1/2+(1-sizeSq)/(2*distanceSq)
+        D=1/distanceSq-x1**2
+        if D<0:
+            return []
+        y1=math.sqrt(D)
+        return [V(x1,y1)*tr.pos,V(x1,-y1)*tr.pos]
+        
     pass
 
 class Polygon(Shape):
