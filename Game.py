@@ -60,7 +60,6 @@ class Entity(GameObject):
         self.AddComponent(C_Position(posTr))
         self.AddComponent(C_Inertia(V0))
         self.AddComponent(C_Hitbox(shape))
-        self.AddComponent(C_DrawShape(shape,(100,0,100)))
         self.AddComponent(C_Health(hp))
 class Projectile(GameObject):
     def __init__(self, posTr, velVec, size, owner=None,maxAge=2000):
@@ -68,12 +67,8 @@ class Projectile(GameObject):
         self.owner=owner
         self.AddComponent(C_Position(posTr))
         self.AddComponent(C_Inertia(velVec))
-        self.AddComponent(C_Position(posTr))
-        self.AddComponent(C_Inertia(velVec))
         color=(100,0,0)
-        shape=LineSegment(Transform(V0,V(size,0),posTr))
-        self.AddComponent(C_DrawShape(shape,color))
-        self.AddComponent(C_DrawTexture(Transform(V0,V1/20,posTr),2))
+        #shape=LineSegment(Transform(V0,V(size,0),posTr))
         self.maxAge=maxAge
         #self.AddComponent(C_Hitbox(shape))
         #self.AddComponent(C_ContactDamage(1))
@@ -85,16 +80,22 @@ class Player(Entity):
     def __init__(self, posTr, hp):
         shape=Circle(Transform(V0,V1/2,posTr))
         super().__init__(posTr, hp, shape)
+        self.AddComponent(C_DrawTexture(Transform(V0,V1/20,posTr),2))
     def O_OnUpdate(self):
+        selfPos=self.GetComponent(C_Position).transform.detach().pos
+        k=self.scene.inputs.GetMousePos().detach().pos-selfPos
+        k=k.normalize()
+        trTx=self.GetComponent(C_DrawTexture).transform
+        trTx.rot=Transform(V0,k).attach(tr).rot*abs(trTx.rot)
         if self.scene.inputs.IsKeyDown(pygame.K_LSHIFT):
-            selfPos=self.GetComponent(C_Position).transform.detach().pos
-            k=self.scene.inputs.GetMousePos().detach().pos-selfPos
-            k=k.normalize()
             self.GetComponent(C_Inertia).velVec=V0
             self.GetComponent(C_Inertia).AccelerateVector(k*20)
-            p=Projectile(Transform(selfPos,k),k*40,1,self,100)
+            posTr=Transform(selfPos,k).attach(self.GetComponent(C_Position).transform)
+            p=Projectile(posTr,k*0 ,1,self,200)
+            p.AddComponent(C_DrawTexture(Transform(V1*0,V1/20,posTr),3))
             self.scene.AddObject(p)
-            p.GetComponent(C_DrawTexture).number=3
+            amb=AmbientParticle(posTr.detach())
+            self.scene.AddObject(amb)
         selfPos=self.GetComponent(C_Position).transform.detach().pos
         v=self.GetComponent(C_Inertia).velVec
         if self.scene.inputs.IsKeyPressed(pygame.K_a) and v.x>-5:
@@ -118,7 +119,6 @@ class WormSegment(Entity):
         
         self.components[C_Health]=head.components[C_Health]
         self.AddComponent(C_DrawTexture(Transform(V0,V1/30,posTr),4))
-        self.RemoveComponent(C_DrawShape)
     def Direction(self):
         nextpos=self.next.GetComponent(C_Position).transform.detach().pos
         selfpos=self.GetComponent(C_Position).transform.detach().pos
@@ -141,7 +141,10 @@ class WormSegment(Entity):
         #vel=self.Direction()*V(0,1)
         tr.rot=vel
         projectile=Projectile(tr,vel*10,1,self)
+        projectile.AddComponent(C_DrawTexture(Transform(V0,V1/20,tr),6))
         self.scene.AddObject(projectile)
+    def O_OnDraw(self, canvas) -> None:
+        return #super().O_OnDraw(canvas)
 class WormHead(Entity):
     def __init__(self, posTr, hp, segments):
         super().__init__(posTr, hp, Circle(Transform(V0,V1/2,posTr)))
@@ -149,7 +152,6 @@ class WormHead(Entity):
         for i in range(segments):
             self.segments.append(WormSegment(posTr.copy(),self,self.segments[-1]))
         self.AddComponent(C_DrawTexture(Transform(V0,V1/30,posTr),5))
-        self.RemoveComponent(C_DrawShape)
     def O_OnInit(self):
         for i in range(len(self.segments)):
             self.scene.AddObject(self.segments[i])
@@ -176,11 +178,12 @@ class WormHead(Entity):
                     tr=self.GetComponent(C_Position).transform
                     tr.rot=Transform(V0,b).attach(tr).detachOnce().rot
             if abs(d)>15:
-                self.GetComponent(C_Position).TranslateVector(f*(abs(d)-15))
+                #self.GetComponent(C_Position).TranslateVector(f*(abs(d)-15))
                 #self.GetComponent(C_Inertia).velVec=V0
+                pass
             if abs(d.x)>10:
                 self.GetComponent(C_Inertia).AccelerateVectorGradual(V(d.x,15))
-            if abs(d.x)<5:
+            if abs(d.x)<10:
                 v=self.GetComponent(C_Inertia).velVec
                 a=0.95
                 if f.y*v.y>0:
@@ -201,6 +204,22 @@ class WormHead(Entity):
     def UpdateTail(self):
         for i in range(len(self.segments)):
             self.segments[i].SpringForce()
+    def O_OnDraw(self, canvas) -> None:
+        for i in range(len(self.segments)):
+            super(Entity,self.segments[i]).O_OnDraw(canvas)
+            
+        return super().O_OnDraw(canvas)
+class AmbientParticle(Projectile):
+    def __init__(self, posTr):
+        velVec=V0
+        size=1
+        owner=None
+        maxAge=2000
+        randVec=V(random.random(),random.random())
+        tr=Transform(randVec*2,V1,posTr)
+        super().__init__(tr, velVec, size, owner=owner, maxAge=maxAge)
+        self.AddComponent(C_DrawTexture(Transform(V0,V1/20,posTr),0))
+    
 if __name__=='__main__':
     a=Scene()
     
@@ -219,4 +238,7 @@ if __name__=='__main__':
     a.AddObject(w)
     ta=Transform(V0,V1)
     a.AddObject(Entity(ta,1,LineSegment(Transform(V0,V1*5,ta))))
-    Display().Loop(a.ScreenUpdate)        
+    def getTime(self):
+        print(self.deltaTime)
+    a.globalMethods.add(getTime)
+    Display().Loop(a.ScreenUpdate,50)        

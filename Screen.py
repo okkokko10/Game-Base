@@ -32,17 +32,19 @@ class Display:
             print(inp)
     def Loop(self,function,speed=50):
         """function(events,deltaTime) -> surface|None|str|-1"""
+        clock=pygame.time.Clock()
         while True:
-            o=self.onceLoop(function,speed)
+            #delay=pygame.time.delay(speed)
+            delay=clock.tick(40)
+            o=self.onceLoop(function,delay)
             if o==-1:
                 return
             self.Update(o)
-    def onceLoop(self,function,speed):
-        d=pygame.time.wait(speed)
+    def onceLoop(self,function,delay):
         if pygame.event.get(pygame.QUIT):
             return -1
         events = pygame.event.get()
-        return function(events,d)
+        return function(events,delay)
 
         
 class Canvas:

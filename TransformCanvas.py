@@ -23,7 +23,7 @@ class TrCanvas:
         pass
     def Blit(self,source,destTransform):
         self.canvas.Blit(source,destTransform.attach(self.transform).pos)
-    def DrawSurface(self,source,transform:Transform,center:CompVec):
+    def DrawSurface(self,source,transform:Transform):
         '''center is NYI'''
         tr=transform.attach(self.transform)
         angle=pygame.Vector2(tr.rot.x,tr.rot.y).angle_to(pygame.Vector2(1,0))

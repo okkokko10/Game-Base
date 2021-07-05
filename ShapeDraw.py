@@ -1,7 +1,7 @@
 from Screen import *
 from Shapes import *
 from TransformCanvas import *
-import GetTextures
+from GetTextures import GetTexture
 class C_DrawShape(Component):
     active:bool
     def __init__(self,shape,color):
@@ -23,7 +23,7 @@ class C_DrawTexture(Component):
         self.transform=transform
         super().__init__()
     def O_OnDraw(self, canvas:TrCanvas):
-        canvas.DrawSurface(GetTextures.GetTexture(self.number),self.transform,V0)
+        canvas.DrawSurface(GetTexture(self.number),self.transform)
         return super().O_OnDraw(canvas)
     pass
 # if __name__=='__main__':

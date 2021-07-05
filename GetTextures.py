@@ -16,7 +16,7 @@ atlas=pygame.transform.scale2x(atlas)
 def GetSub(rect):
     return atlas.subsurface(rect)
 
-sizes=(21,21),(21,25),(46,25),(46,25),(36,31),(21,21)
+sizes=(21,21),(21,25),(46,25),(46,25),(36,31),(21,21),(20,13)
 locations=[]
 y=0
 for s in sizes:
