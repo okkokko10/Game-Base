@@ -1,6 +1,7 @@
 from Screen import *
 from Shapes import *
 from TransformCanvas import *
+import GetTextures
 class C_DrawShape(Component):
     active:bool
     def __init__(self,shape,color):
@@ -16,7 +17,15 @@ class C_DrawShape(Component):
             for line in self.shape.lines:
                 canvas.DrawLine(line.transform,self.color)
         super().O_OnDraw(canvas)
-
+class C_DrawTexture(Component):
+    def __init__(self,transform,number) -> None:
+        self.number=number
+        self.transform=transform
+        super().__init__()
+    def O_OnDraw(self, canvas:TrCanvas):
+        canvas.DrawSurface(GetTextures.GetTexture(self.number),self.transform,V0)
+        return super().O_OnDraw(canvas)
+    pass
 # if __name__=='__main__':
 #     tr=Transform(V(0,0),V(1/100,0))
 #     a=Scene(TrCanvas(V(800,800),tr))

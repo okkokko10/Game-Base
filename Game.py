@@ -1,5 +1,6 @@
 from ComplexVector import CompVec
 from PhysicsSim import *
+import GetTextures
 class C_Health(Component):
     def __init__(self,hp,defense=0,damageResistance=0) -> None:
         super().__init__()
@@ -62,7 +63,7 @@ class Entity(GameObject):
         self.AddComponent(C_DrawShape(shape,(100,0,100)))
         self.AddComponent(C_Health(hp))
 class Projectile(GameObject):
-    def __init__(self, posTr, velVec, size, owner=None):
+    def __init__(self, posTr, velVec, size, owner=None,maxAge=2000):
         super().__init__()
         self.owner=owner
         self.AddComponent(C_Position(posTr))
@@ -72,10 +73,12 @@ class Projectile(GameObject):
         color=(100,0,0)
         shape=LineSegment(Transform(V0,V(size,0),posTr))
         self.AddComponent(C_DrawShape(shape,color))
+        self.AddComponent(C_DrawTexture(Transform(V0,V1/20,posTr),2))
+        self.maxAge=maxAge
         #self.AddComponent(C_Hitbox(shape))
         #self.AddComponent(C_ContactDamage(1))
     def O_OnUpdate(self):
-        if self.GetAge()>2000:
+        if self.GetAge()>self.maxAge>=0:
             self.Remove()
         return super().O_OnUpdate()
 class Player(Entity):
@@ -87,14 +90,11 @@ class Player(Entity):
             selfPos=self.GetComponent(C_Position).transform.detach().pos
             k=self.scene.inputs.GetMousePos().detach().pos-selfPos
             k=k.normalize()
-            p=Projectile(Transform(selfPos,k*V(0,1)),k*V(0,1),1,self)
-            self.scene.AddObject(p)
-            self.GetComponent(C_Position).TranslateVector(k*5)
             self.GetComponent(C_Inertia).velVec=V0
-            self.GetComponent(C_Inertia).AccelerateVector(k*10)
-            selfPos=self.GetComponent(C_Position).transform.detach().pos
-            p=Projectile(Transform(selfPos,k*V(0,1)),k*V(0,1),1,self)
+            self.GetComponent(C_Inertia).AccelerateVector(k*20)
+            p=Projectile(Transform(selfPos,k),k*40,1,self,100)
             self.scene.AddObject(p)
+            p.GetComponent(C_DrawTexture).number=3
         selfPos=self.GetComponent(C_Position).transform.detach().pos
         v=self.GetComponent(C_Inertia).velVec
         if self.scene.inputs.IsKeyPressed(pygame.K_a) and v.x>-5:
@@ -117,6 +117,8 @@ class WormSegment(Entity):
         self.next=nextSegment
         
         self.components[C_Health]=head.components[C_Health]
+        self.AddComponent(C_DrawTexture(Transform(V0,V1/30,posTr),4))
+        self.RemoveComponent(C_DrawShape)
     def Direction(self):
         nextpos=self.next.GetComponent(C_Position).transform.detach().pos
         selfpos=self.GetComponent(C_Position).transform.detach().pos
@@ -127,9 +129,10 @@ class WormSegment(Entity):
             f=d*(1-1/abs(d))
             self.GetComponent(C_Position).TranslateVector(f)
         #self.GetComponent(C_Inertia).AccelerateVectorGradual(d.normalize())
-    def O_OnUpdate(self):
-        #self.SpringForce()
-        return super().O_OnUpdate()
+        if d!=V0:
+            b=d.normalize()
+            tr=self.GetComponent(C_Position).transform
+            tr.rot=Transform(V0,b).attach(tr).detachOnce().rot
     def Shoot(self,atTr):
         tr=self.GetComponent(C_Position).transform.detach()
         atPos=atTr.detach().pos
@@ -145,6 +148,8 @@ class WormHead(Entity):
         self.segments=[WormSegment(posTr.copy(),self,self)]
         for i in range(segments):
             self.segments.append(WormSegment(posTr.copy(),self,self.segments[-1]))
+        self.AddComponent(C_DrawTexture(Transform(V0,V1/30,posTr),5))
+        self.RemoveComponent(C_DrawShape)
     def O_OnInit(self):
         for i in range(len(self.segments)):
             self.scene.AddObject(self.segments[i])
@@ -154,7 +159,7 @@ class WormHead(Entity):
             o.Remove()
         return super().O_OnRemove()
     def O_OnUpdate(self):
-        self.UpdateTail()
+        super().O_OnUpdate()
         p=None
         for o in self.scene.objects:
             if isinstance(o,Player):
@@ -164,19 +169,32 @@ class WormHead(Entity):
             selfPos=self.GetComponent(C_Position).transform.detach().pos
             d=playerPos-selfPos
             f=d.normalize()
-            if abs(d)>15 and False:
+            if True:
+                segPos=self.segments[0].GetComponent(C_Position).transform.detach().pos
+                b=-(segPos-selfPos).normalize()
+                if b!=V0:
+                    tr=self.GetComponent(C_Position).transform
+                    tr.rot=Transform(V0,b).attach(tr).detachOnce().rot
+            if abs(d)>15:
                 self.GetComponent(C_Position).TranslateVector(f*(abs(d)-15))
-                self.GetComponent(C_Inertia).velVec=V0
+                #self.GetComponent(C_Inertia).velVec=V0
             if abs(d.x)>10:
                 self.GetComponent(C_Inertia).AccelerateVectorGradual(V(d.x,15))
+            if abs(d.x)<5:
+                v=self.GetComponent(C_Inertia).velVec
+                a=0.95
+                if f.y*v.y>0:
+                    a=1.05
+                self.GetComponent(C_Inertia).velVec=V(v.x*1,v.y*a)
             if selfPos.y<0:
-                self.GetComponent(C_Inertia).AccelerateVectorGradual(V(0,15))
+                #self.GetComponent(C_Inertia).AccelerateVectorGradual(V(0,15))
+                pass
             else:
                 f=V(f.x,f.y*5)
             self.GetComponent(C_Inertia).AccelerateVectorGradual(f*5)
             if self.scene.inputs.IsKeyDown(pygame.K_e):
                 self.ShootAll(p.GetComponent(C_Position).transform)
-        return super().O_OnUpdate()
+        self.UpdateTail()
     def ShootAll(self,atTr):
         for o in self.segments:
             o.Shoot(atTr)

@@ -132,7 +132,7 @@ class Scene:
             self.objects.remove(o)
         self.removeObjectBuffer.clear()
         if self.canvas:
-            self.canvas.Fill((0,100,0))
+            self.canvas.Fill((0,0,0))
             for o in self.objects:
                 o.O_OnDraw(self.canvas)
 
@@ -161,7 +161,7 @@ class GameObject:
         self.birthTime=self.scene.totalTime
         for c in self.components:
             self.components[c].O_OnInit()
-    def O_OnDraw(self,canvas):
+    def O_OnDraw(self,canvas) -> None:
         for c in self.components:
             self.components[c].O_OnDraw(canvas)
     def O_OnUpdate(self):
@@ -226,7 +226,7 @@ class Inputs:
                 self._KeyDown(e.__dict__['key'])
             elif e.type == pygame.KEYUP:
                 self._KeyUp(e.__dict__['key'])
-            elif e.type in (pygame.MOUSEMOTION,pygame.MOUSEBUTTONUP,pygame.MOUSEBUTTONDOWN):
+            elif scene.canvas and e.type in (pygame.MOUSEMOTION,pygame.MOUSEBUTTONUP,pygame.MOUSEBUTTONDOWN):
                 x,y=e.__dict__['pos']
                 self.mousePosScreen=V(x,y)
                 self.mousePos=scene.canvas.InverseTransformPos(self.mousePosScreen)

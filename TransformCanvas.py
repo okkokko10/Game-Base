@@ -1,3 +1,4 @@
+from ComplexVector import CompVec
 from Shapes import *
 from Screen import *
 class TrCanvas:
@@ -22,6 +23,13 @@ class TrCanvas:
         pass
     def Blit(self,source,destTransform):
         self.canvas.Blit(source,destTransform.attach(self.transform).pos)
+    def DrawSurface(self,source,transform:Transform,center:CompVec):
+        '''center is NYI'''
+        tr=transform.attach(self.transform)
+        angle=pygame.Vector2(tr.rot.x,tr.rot.y).angle_to(pygame.Vector2(1,0))
+        out=pygame.transform.rotozoom(source,angle,abs(tr.rot))
+        self.canvas.Blit(out,tr.pos+Vi(self.canvas.surface.get_size())/2-Vi(out.get_size())/2)
+        pass
 
 class C_inputMove(Component):
     def O_OnUpdate(self):
