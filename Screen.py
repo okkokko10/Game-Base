@@ -30,12 +30,12 @@ class Display:
             pygame.display.update()
         elif isinstance(inp,str):
             print(inp)
-    def Loop(self,function,speed=50):
+    def Loop(self,function,fps=40):
         """function(events,deltaTime) -> surface|None|str|-1"""
         clock=pygame.time.Clock()
         while True:
             #delay=pygame.time.delay(speed)
-            delay=clock.tick(40)
+            delay=clock.tick(fps)
             o=self.onceLoop(function,delay)
             if o==-1:
                 return
@@ -48,8 +48,11 @@ class Display:
 
         
 class Canvas:
-    def __init__(self,size):
-        self.surface=pygame.Surface(iV(size))
+    def __init__(self,size,surface=None):
+        if surface:
+            self.surface=surface
+        else:
+            self.surface=pygame.Surface(iV(size))
     def DrawCircle(self,pos,color,radius):
         pygame.draw.circle(self.surface,color,iV(pos),int(radius))
     def DrawLine(self,posA,posB,color,width):

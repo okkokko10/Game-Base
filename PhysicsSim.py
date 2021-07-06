@@ -11,11 +11,11 @@ class C_Inertia(Component):
     def AccelerateVector(self,amount):
         self.acceleration+=amount
     def AccelerateTransform(self,tr):
-        self.AccelerateVector(tr.detach().pos)
+        self.AccelerateVector(tr.detach().rot)
     def AccelerateVectorGradual(self,amount):
         self.accelerationGradual+=amount
     def AccelerateTransformGradual(self,tr):
-        self.AccelerateVectorGradual(tr.detach().pos)
+        self.AccelerateVectorGradual(tr.detach().rot)
     def UpdatePos(self):
         deltaTime=self.gameObject.scene.deltaTime
         self.velVec+=self.accelerationGradual*deltaTime/1000+self.acceleration

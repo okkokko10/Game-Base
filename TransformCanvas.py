@@ -2,8 +2,8 @@ from ComplexVector import CompVec
 from Shapes import *
 from Screen import *
 class TrCanvas:
-    def __init__(self,size,transform):
-        self.canvas=Canvas(size)
+    def __init__(self,size,transform,surface=None):
+        self.canvas=Canvas(size,surface)
         self.offset=Vi(size)/2
         assert isinstance(transform,Transform)
         self.transform = transform
@@ -59,7 +59,9 @@ class C_Camera(Component):
         self.size=size
         super().__init__()
     def O_OnInit(self):
-        self.gameObject.scene.canvas=TrCanvas(self.size,self.transform.detach())
+        trCanvas=TrCanvas(self.size,self.transform.detach())
+        #trCanvas.canvas.surface=self.gameObject.scene.display.canvas
+        self.gameObject.scene.canvas=trCanvas
         return super().O_OnInit()
     def O_OnUpdate(self):
         self.gameObject.scene.canvas.transform.Become(self.transform.detach())
