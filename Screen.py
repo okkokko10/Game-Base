@@ -16,9 +16,10 @@ V1=V(1,0)
 from Transform import Transform
 
 class Display:
-    def __init__(self):
-        pygame.display.set_mode((1,1))
-        self.canvas=None
+    def __init__(self,size):
+        self.canvas = pygame.display.set_mode(iV(size))
+        #pygame.display.set_mode((1,1))
+        #self.canvas=None
         pass
     def InitCanvas(self,size):
         self.canvas = pygame.display.set_mode(iV(size))
@@ -39,12 +40,13 @@ class Display:
             o=self.onceLoop(function,delay)
             if o==-1:
                 return
-            self.Update(o)
+            #self.Update(o)
+            pygame.display.update()
     def onceLoop(self,function,delay):
         if pygame.event.get(pygame.QUIT):
             return -1
         events = pygame.event.get()
-        return function(events,delay)
+        return function(events,delay,self.canvas)
 
         
 class Canvas:
@@ -121,10 +123,10 @@ class Scene:
             gameObject.O_OnInit()
             i+=1
         self.addObjectBuffer.clear()
-    def ScreenUpdate(self,events,deltaTime):
+    def ScreenUpdate(self,events,deltaTime,surface):
         self.events=events
-        self.deltaTime=deltaTime
-        self.totalTime+=deltaTime
+        self.deltaTime=min(deltaTime,100)
+        self.totalTime+=self.deltaTime
         self.UpdateInputs()
         for f in self.globalMethods:
             f(self)
@@ -137,6 +139,7 @@ class Scene:
             self.objects.remove(o)
         self.removeObjectBuffer.clear()
         if self.canvas:
+            self.canvas.SetSurface(surface)
             self.canvas.Fill((0,0,0))
             for o in self.objects:
                 o.O_OnDraw(self.canvas)
@@ -221,7 +224,7 @@ class Inputs:
     def __init__(self):
         self.keysDown={}
         self.mousePosScreen=V(0,0)
-        self.mousePos=V(0,0)
+        self.mousePos=Transform(V1,V1)
         self.mouseButtonsDown={}
     def Update(self,scene):
         self._UpdateKeys()
@@ -296,6 +299,7 @@ class Inputs:
         for k in remove:
             del self.mouseButtonsDown[k]
     def GetMousePos(self):
+        assert isinstance(self.mousePos,Transform)
         return self.mousePos
     def GetTrueMousePos(self):
         return self.mousePosScreen

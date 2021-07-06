@@ -89,7 +89,7 @@ class Player(Entity):
         k=self.scene.inputs.GetMousePos().detach().pos-selfPos
         k=k.normalize()
         trTx=self.GetComponent(C_DrawTexture).transform
-        trTx.rot=Transform(V0,k).attach(tr).rot*abs(trTx.rot)
+        trTx.rot=Transform(V0,k).attach(tr).rot/20
         if self.scene.inputs.IsKeyDown(pygame.K_LSHIFT):
             self.GetComponent(C_Inertia).velVec=V0
             self.GetComponent(C_Inertia).AccelerateVector(k*20)
@@ -100,8 +100,8 @@ class Player(Entity):
             self.scene.AddObject(p)
         selfPos=self.GetComponent(C_Position).transform.detach().pos
         v=self.GetComponent(C_Inertia).velVec
-        maxspeed=20
-        acceleration=50
+        maxspeed=10
+        acceleration=25
         moved=False
         if self.scene.inputs.IsKeyPressed(pygame.K_a) and v.x>-maxspeed:
             self.GetComponent(C_Inertia).AccelerateVectorGradual(V(-acceleration,0))
@@ -197,6 +197,9 @@ class WormHead(Entity):
                     tr=self.GetComponent(C_Position).transform
                     tr.rot=Transform(V0,b).attach(tr).detachOnce().rot
                 self.GetComponent(C_Inertia).AccelerateVectorGradual(self.GetComponent(C_Position).transform.detach().rot)
+            v=self.GetComponent(C_Inertia).velVec
+            if v.lengthSq()>100:
+                self.GetComponent(C_Inertia).AccelerateVectorGradual(-v/10)
             if abs(d)>15:
                 #self.ShootAll(player.GetComponent(C_Position).transform)
                 #self.GetComponent(C_Position).TranslateVector(f*(abs(d)-15))
@@ -250,14 +253,14 @@ class AmbientParticle(Projectile):
     
 if __name__=='__main__':
     a=Scene()
-    display=Display()
+    display=Display((1600,800))
     p=Player(Transform(V(0,0),V(1,0)),5)
     a.AddObject(Projectile(Transform(V(-4,-8),V(1,0)),V0,8,p))
     a.AddObject(Projectile(Transform(V(4,-4),V(0,1)),V0,8,p))
     a.AddObject(Projectile(Transform(V(4,4),V(-1,0)),V0,8,p))
     a.AddObject(Projectile(Transform(V(-4,4),V(0,-1)),V0,8,p))
     tr=p.GetComponent(C_Position).transform
-    t=Transform(V(0,0),V(1/15,0),tr)
+    t=Transform(V(0,0),V(1/50,0),tr)
     #trCanvas=TrCanvas(V(1600,800),t)
     p.AddComponent(C_Camera(t,(1600,800)))
     a.AddObject(p)

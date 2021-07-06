@@ -30,7 +30,8 @@ class TrCanvas:
         out=pygame.transform.rotozoom(source,angle,abs(tr.rot))
         self.canvas.Blit(out,tr.pos+Vi(self.canvas.surface.get_size())/2-Vi(out.get_size())/2)
         pass
-
+    def SetSurface(self,surface):
+        self.canvas.surface=surface
 class C_inputMove(Component):
     def O_OnUpdate(self):
         super().O_OnUpdate()
