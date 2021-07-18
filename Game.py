@@ -260,7 +260,7 @@ if __name__=='__main__':
     a.AddObject(Projectile(Transform(V(4,4),V(-1,0)),V0,8,p))
     a.AddObject(Projectile(Transform(V(-4,4),V(0,-1)),V0,8,p))
     tr=p.GetComponent(C_Position).transform
-    t=Transform(V(0,0),V(1/50,0),tr)
+    t=Transform(V(0,0),V(1/30,0),tr)
     #trCanvas=TrCanvas(V(1600,800),t)
     p.AddComponent(C_Camera(t,(1600,800)))
     a.AddObject(p)
