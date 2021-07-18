@@ -1,6 +1,8 @@
-from ComplexVector import CompVec
-from PhysicsSim import *
-import GetTextures
+import QuickDirectory
+from BC.PhysicsSim import *
+from BC.ComplexVector import CompVec
+import BC.GetTextures
+
 class C_Health(Component):
     def __init__(self,hp,defense=0,damageResistance=0) -> None:
         super().__init__()
