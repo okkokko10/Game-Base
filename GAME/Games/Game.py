@@ -1,4 +1,4 @@
-import QuickDirectory
+import quickDirectory
 from BC.PhysicsSim import *
 from BC.ComplexVector import CompVec
 import BC.GetTextures

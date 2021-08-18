@@ -5,6 +5,7 @@ class Transform:
         self.pos=pos
         self.rot=rot
         self.world=None
+        assert rot!=V0
     def detachFrom(self,parent):
         return Transform(parent.pos+self.pos*parent.rot,self.rot*parent.rot,parent.parent)
     def detachOnce(self):
@@ -61,7 +62,8 @@ class Transform:
     def Rotate(self,rotationCompVec):
         self.rot*=rotationCompVec
     def TranslateVector(self,vec):
-        self.Translate(Transform(V(0,0),vec))
+        if vec!=V0:
+            self.Translate(Transform(V(0,0),vec))
     @staticmethod
     def FromVector(vec):
         return Transform(vec,V(1,0))

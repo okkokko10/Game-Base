@@ -1,4 +1,4 @@
-import QuickDirectory
+import quickDirectory
 from Screen import *
 
 from Shapes import *

@@ -1,4 +1,4 @@
-import QuickDirectory
+import quickDirectory
 from pygame import Vector2
 from ComplexVector import CompVec
 from TransformCanvas import *

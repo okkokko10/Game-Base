@@ -153,6 +153,12 @@ class Scene:
         if gameObject in self.objects:
             gameObject.O_OnRemove()
             self.removeObjectBuffer.add(gameObject)
+    def GetAllComponents(self,t):
+        out=[]
+        for k in self.objects:
+            if k.HasComponent(t):
+                out.append(k.GetComponent(t))
+        return out
 
 class GameObject:
     active=False
