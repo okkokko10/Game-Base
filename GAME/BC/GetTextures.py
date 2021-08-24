@@ -25,5 +25,20 @@ for s in sizes:
     y+=s[1]
 
 images=[GetSub(l) for l in locations]
+def ConvertImages(surface):
+    global images
+    i = images.copy()
+    images = [
+        #pygame.transform.scale2x
+        (img.convert(surface)) for img in i]
+def images1():
+    global images
+    return images
+def setImages(value):
+    global images 
+    images = value
 def GetTexture(i):
-    return images[i]
+    return images1()[i]
+
+if pygame.display.get_surface():
+    images=ConvertImages(pygame.display.get_surface())

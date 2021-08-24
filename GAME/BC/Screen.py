@@ -14,16 +14,19 @@ def iV(v):
 V0=V(0,0)
 V1=V(1,0)
 from Transform import Transform
+import BC.GetTextures
 
 class Display:
     def __init__(self,size):
         self.canvas = pygame.display.set_mode(iV(size))
+        BC.GetTextures.ConvertImages(pygame.display.get_surface())
         #pygame.display.set_mode((1,1))
         #self.canvas=None
         pass
     def InitCanvas(self,size):
         self.canvas = pygame.display.set_mode(iV(size))
-    def Update(self,inp):
+    def Update(self,inp):#not used
+        'not used'
         if isinstance(inp,pygame.Surface):
             if not self.canvas:
                 self.InitCanvas(inp.get_size())

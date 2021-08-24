@@ -2,7 +2,6 @@ import quickDirectory
 from BC.PhysicsSim import *
 from BC.ComplexVector import CompVec
 import BC.GetTextures
-
 class C_Health(Component):
     def __init__(self,hp,defense=0,damageResistance=0) -> None:
         super().__init__()
@@ -156,7 +155,10 @@ class WormSegment(Entity):
         vel=atPos-tr.pos
         vel=vel.normalize()
         #vel=self.Direction()*V(0,1)
-        tr.rot=vel
+        if vel==V0:
+            tr.rot=V1
+        else:
+            tr.rot=vel
         projectile=Projectile(tr,vel*10,1,self,4000)
         projectile.AddComponent(C_DrawTexture(Transform(V0,V1/20,tr),6))
         self.scene.AddObject(projectile)
@@ -256,6 +258,11 @@ class AmbientParticle(Projectile):
 if __name__=='__main__':
     a=Scene()
     display=Display((1600,800))
+    # print(BC.GetTextures.images)
+    BC.GetTextures.ConvertImages(pygame.display.get_surface())
+    # I seem to not be able to wrap my head around the surface.convert() method. how do I activate it??
+    # Maybe that did it
+
     p=Player(Transform(V(0,0),V(1,0)),5)
     a.AddObject(Projectile(Transform(V(-4,-8),V(1,0)),V0,8,p))
     a.AddObject(Projectile(Transform(V(4,-4),V(0,1)),V0,8,p))
@@ -271,7 +278,7 @@ if __name__=='__main__':
     a.AddObject(w)
     ta=Transform(V0,V1)
     a.AddObject(Entity(ta,1,LineSegment(Transform(V0,V1*5,ta))))
-    def getTime(self):
-        print(self.deltaTime)
-    a.globalMethods.add(getTime)
-    display.Loop(a.ScreenUpdate,50)        
+    # def getTime(self):
+    #     print(self.deltaTime)
+    # a.globalMethods.add(getTime)
+    display.Loop(a.ScreenUpdate,50)
